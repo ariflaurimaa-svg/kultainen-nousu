@@ -368,10 +368,6 @@
 
   <div id="end-screen" class="end-screen" style="display:none;">
     <h2 style="font-size: 1.8rem; color: var(--gold);" id="end-title">Peli päättyi!</h2>
-    <p class="prompt-text" id="end-message">Hienosti pelattu!</p>
-Tässä on Tiedosto 2 (index.html) kokonaisuudessaan, täysin valmiina ja korjattuna (mukaan lukien taulukkoindeksoinnit, jotta se toimii virheettömästi).
-Voit kopioida tämän suoraan alla olevan koodilaatikon oikeasta yläkulmasta löytyvästä Kopioi-painikkeesta ja liittää sen GitHubiin.
-html
 <!DOCTYPE html>
 <html lang="fi">
 <head>
@@ -742,8 +738,7 @@ html
 
   <div id="end-screen" class="end-screen" style="display:none;">
     <h2 style="font-size: 1.8rem; color: var(--gold);" id="end-title">Peli päättyi!</h2>
-    <p class="prompt-text" id="end-message">Hienosti pelattu!</p>
-Käytä koodia harkiten.
+    Hienosti pelattu!
 Pelaa uusi kierros
 
 Päivän pelihetken mahdollistaa
@@ -877,14 +872,14 @@ document.getElementById("question-screen").style.display = "none";
 document.getElementById("loading-screen").style.display = "none";
 document.getElementById("hint-box").style.display = "none";
 let shuffled = [...allTopics].sort(() => Math.random() - 0.5);
-currentTopicPair = [shuffled[0], shuffled[1]];
+currentTopicPair = [shuffled, shuffled];
 const unusedCustom = customQuestions.filter(q => !q.used);
 if (unusedCustom.length > 0 && Math.random() < 0.4) {
-currentTopicPair[1] = "Oma erikoiskysymys";
+currentTopicPair = "Oma erikoiskysymys";
 }
 document.getElementById("step-intro").innerText = Taso ${currentStep + 1} (${prizes[currentStep]}): Valitse aihe;
-document.getElementById("topic-1-btn").innerText = currentTopicPair[0];
-document.getElementById("topic-2-btn").innerText = currentTopicPair[1];
+document.getElementById("topic-1-btn").innerText = currentTopicPair;
+document.getElementById("topic-2-btn").innerText = currentTopicPair;
 window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 async function selectTopic(topicIndex) {
@@ -928,9 +923,9 @@ setTimeout(() => prepareAndShowQuestion(fb), 500);
 function prepareAndShowQuestion(rawQuestion) {
 let allOptions = [
 { text: rawQuestion.a, isCorrect: true },
-{ text: rawQuestion.w[0], isCorrect: false },
-{ text: rawQuestion.w[1], isCorrect: false },
-{ text: rawQuestion.w[2], isCorrect: false }
+{ text: rawQuestion.w, isCorrect: false },
+{ text: rawQuestion.w, isCorrect: false },
+{ text: rawQuestion.w, isCorrect: false }
 ];
 allOptions.sort(() => Math.random() - 0.5);
 currentQuestion = {
@@ -1005,12 +1000,318 @@ used5050 = true;
 document.getElementById("btn-5050").disabled = true;
 pendingSelection = null;
 document.getElementById("confirm-banner").style.display = "none";
-let wrongIndices = [0, 1, 2, 3].filter(i => i !== currentQuestion.correct);
+let wrongIndices =.filter(i => i !== currentQuestion.correct);
 wrongIndices.sort(() => Math.random() - 0.5);
-document.getElementById(opt-${wrongIndices[0]}).classList.add("hidden-option");
-document.getElementById(opt-${wrongIndices[1]}).classList.add("hidden-option");
-document.getElementById(opt-${wrongIndices[0]}).classList.remove("selected-confirm");
-document.getElementById(opt-${wrongIndices[1]}).classList.remove("selected-confirm");
+document.getElementById(opt-${wrongIndices}).classList.add("hidden-option");
+document.getElementById(opt-${wrongIndices}).classList.add("hidden-option");
+document.getElementById(opt-${wrongIndices}).classList.remove("selected-confirm");
+document.getElementById(opt-${wrongIndices}).classList.remove("selected-confirm");
+}
+function useHint() {
+if (usedHint || !isAnswering) return;
+usedHint = true;
+document.getElementById("btn-hint").disabled = true;
+const hintBox = document.getElementById("hint-box");
+hintBox.innerText = Juontajan vihje: ${currentQuestion.hint};
+hintBox.style.display = "block";
+}
+async function useSwap() {
+if (usedSwap || !isAnswering) return;
+usedSwap = true;
+document.getElementById("btn-swap").disabled = true;
+const newTopic = allTopics[Math.floor(Math.random() * allTopics.length)];
+await fetchQuestionFromServer(newTopic);
+}
+function endGame(walkedAway, wonAll = false) {
+document.getElementById("topic-screen").style.display = "none";
+document.getElementById("question-screen").style.display = "none";
+document.getElementById("loading-screen").style.display = "none";
+document.getElementById("lifelines-bar").style.display = "none";
+document.getElementById("end-screen").style.display = "block";
+window.scrollTo({ top: 0, behavior: 'smooth' });
+const title = document.getElementById("end-title");
+const msg = document.getElementById("end-message");
+if (wonAll) {
+title.innerText = "ONNEKSI OLKOON! LÄPÄISIT KOKO PELIN!";
+msg.innerText = "Vastasit kaikkiin 10 kysymykseen oikein ja saavutit huipputuloksen 500 000 pistettä!";
+} else if (walkedAway) {
+const wonAmount = prizes[currentStep - 1].replace(" (Turvataso)", "");
+title.innerText = "Loistava suoritus!";
+msg.innerText = Päätit lopettaa pelin ja talletit tuloksen: ${wonAmount}.;
+} else {
+const safeAmount = safePrizes[currentStep];
+title.innerText = "Voi harmi, vastaus oli väärin!";
+msg.innerText = Peli päättyi tähän. Turvatasojen ansiosta lopullinen tuloksesi on: ${safeAmount}.;
+}
+}
+startNewGame();Hienosti pelattu!
+Pelaa uusi kierros
+
+Päivän pelihetken mahdollistaa
+Kultainen Nousu – Ilmainen tietovisa senioreille
+Tutustu kumppaniin
+const prizes = ["500 pistettä", "1 000 pistettä", "2 500 pistettä", "5 000 pistettä (Turvataso)", "10 000 pistettä", "25 000 pistettä", "50 000 pistettä (Turvataso)", "100 000 pistettä", "250 000 pistettä", "500 000 pistettä"];
+const safePrizes = ["0 pistettä", "0 pistettä", "0 pistettä", "5 000 pistettä", "5 000 pistettä", "5 000 pistettä", "50 000 pistettä", "50 000 pistettä", "50 000 pistettä", "500 000 pistettä"];
+const allTopics = [
+"Suomen luonto ja eläimet", "Suomen historia", "Perinneruoat ja leivonta",
+"Kotimaan maantieto", "Vanhat suomalaiset sananlaskut", "Suomalainen iskelmä ja musiikki",
+"Kasvit, marjat ja puutarha", "Klassikkoelokuvat ja teatteri", "Suomalainen kirjallisuus",
+"Maailman maat ja pääkaupungit", "Terveys ja hyvinvointi", "Suomen presidentit ja valtiomiehet",
+"Keksinnöt ja tiede", "Kuvataide ja arkkitehtuuri", "Urheiluhistoria ja olympialaiset",
+"Kansanperinne ja Kalevala", "Sauna ja suomalainen arki", "Sää, vuodenajat ja tähtitaivas",
+"Käsityöt ja perinnetaidot", "1950–1980-lukujen muistot"
+];
+const fallbackBank = [
+{ topic: "Suomen luonto", q: "Mikä lintu on valittu Suomen kansallislinnuksi?", a: "Laulujoutsen", w: ["Käki", "Pääskynen", "Merikotka"], hint: "Tämä suuri valkoinen lintu pesii järvillä ja soilla." },
+{ topic: "Suomen historia", q: "Minä vuonna Suomi itsenäistyi?", a: "1917", w: ["1918", "1939", "1945"], hint: "Itsenäisyysjulistus annettiin joulukuun alussa yli sata vuotta sitten." },
+{ topic: "Kirjallisuus", q: "Kuka loi kaikkien tuntemat Muumi-hahmot?", a: "Tove Jansson", w: ["Astrid Lindgren", "Minna Canth", "Aino Kallas"], hint: "Suomenruotsalainen kirjailija ja taidemaalari." },
+{ topic: "Musiikki", q: "Kuka sävelsi 'Finlandia'-hymnin?", a: "Jean Sibelius", w: ["Oskar Merikanto", "Toivo Kuula", "Leevi Madetoja"], hint: "Suomen kansallissäveltäjä, jonka koti Ainola sijaitsee Järvenpäässä." }
+];
+let currentStep = 0;
+let currentTopicPair = [];
+let currentQuestion = null;
+let used5050 = false;
+let usedHint = false;
+let usedSwap = false;
+let isAnswering = false;
+let pendingSelection = null;
+let isLargeFont = false;
+let askedHistory = JSON.parse(localStorage.getItem('kn_ai_history') || '[]');
+let customQuestions = JSON.parse(localStorage.getItem('kn_custom_q') || '[]');
+function openAdmin() {
+const panel = document.getElementById('settings-panel');
+if (panel.style.display === 'block') {
+panel.style.display = 'none';
+return;
+}
+const code = prompt("Syötä ylläpitokoodi (oletus: 1234):");
+if (code === "1234") {
+panel.style.display = 'block';
+document.getElementById('sponsor-name-input').value = localStorage.getItem('kn_sponsor_name') || '';
+document.getElementById('sponsor-text-input').value = localStorage.getItem('kn_sponsor_text') || '';
+document.getElementById('sponsor-url-input').value = localStorage.getItem('kn_sponsor_url') || '';
+}
+}
+function loadSponsor() {
+const sName = localStorage.getItem('kn_sponsor_name');
+const sText = localStorage.getItem('kn_sponsor_text');
+const sUrl = localStorage.getItem('kn_sponsor_url');
+if (sName || sText) {
+document.getElementById('sponsor-display-text').innerText = ${sName ? sName + ' – ' : ''}${sText || ''};
+}
+const linkEl = document.getElementById('sponsor-display-link');
+if (sUrl) {
+linkEl.href = sUrl.startsWith('http') ? sUrl : 'https://' + sUrl;
+linkEl.style.display = 'inline-block';
+} else {
+linkEl.style.display = 'none';
+}
+}
+function saveSponsor() {
+localStorage.setItem('kn_sponsor_name', document.getElementById('sponsor-name-input').value.trim());
+localStorage.setItem('kn_sponsor_text', document.getElementById('sponsor-text-input').value.trim());
+localStorage.setItem('kn_sponsor_url', document.getElementById('sponsor-url-input').value.trim());
+loadSponsor();
+document.getElementById('settings-status').innerText = "✅ Sponsoritiedot päivitetty!";
+}
+function addCustomQuestion() {
+const q = document.getElementById('custom-q').value.trim();
+const a = document.getElementById('custom-a').value.trim();
+const w1 = document.getElementById('custom-w1').value.trim();
+const w2 = document.getElementById('custom-w2').value.trim();
+const w3 = document.getElementById('custom-w3').value.trim();
+const hint = document.getElementById('custom-hint').value.trim() || "Tämä on oma erikoiskysymys!";
+if (!q || !a || !w1 || !w2 || !w3) {
+document.getElementById('settings-status').innerText = "⚠️ Täytä kaikki kysymyskentät.";
+return;
+}
+customQuestions.push({ topic: "Oma erikoiskysymys", q, a, w: [w1, w2, w3], hint, used: false });
+localStorage.setItem('kn_custom_q', JSON.stringify(customQuestions));
+document.getElementById('custom-q').value = "";
+document.getElementById('custom-a').value = "";
+document.getElementById('custom-w1').value = "";
+document.getElementById('custom-w2').value = "";
+document.getElementById('custom-w3').value = "";
+document.getElementById('custom-hint').value = "";
+document.getElementById('settings-status').innerText = ✅ Kysymys lisätty! (${customQuestions.length} kpl);
+}
+function clearHistory() {
+askedHistory = [];
+localStorage.setItem('kn_ai_history', '[]');
+customQuestions.forEach(q => q.used = false);
+localStorage.setItem('kn_custom_q', JSON.stringify(customQuestions));
+document.getElementById('settings-status').innerText = "Historia nollattu.";
+}
+function toggleFontSize() {
+isLargeFont = !isLargeFont;
+document.documentElement.style.setProperty('--base-font', isLargeFont ? '22px' : '18px');
+document.getElementById('zoom-btn').innerText = isLargeFont ? 'Normaali teksti (-)' : 'Suurenna tekstiä (+)';
+}
+function startNewGame() {
+currentStep = 0;
+used5050 = false;
+usedHint = false;
+usedSwap = false;
+document.getElementById("btn-5050").disabled = false;
+document.getElementById("btn-hint").disabled = false;
+document.getElementById("btn-swap").disabled = false;
+document.getElementById("lifelines-bar").style.display = "grid";
+document.getElementById("end-screen").style.display = "none";
+loadSponsor();
+loadTopicScreen();
+}
+function updateHeader() {
+const currentPot = currentStep === 0 ? "0 pistettä" : prizes[currentStep - 1].replace(" (Turvataso)", "");
+document.getElementById("score-display").innerText = Taso ${currentStep + 1} / 10 • ${currentPot};
+const walkBtn = document.getElementById("walk-away-btn");
+if (currentStep > 0) {
+walkBtn.style.display = "inline-block";
+walkBtn.innerText = Lopeta peli ja talleta ${currentPot};
+} else {
+walkBtn.style.display = "none";
+}
+}
+function loadTopicScreen() {
+updateHeader();
+document.getElementById("topic-screen").style.display = "block";
+document.getElementById("question-screen").style.display = "none";
+document.getElementById("loading-screen").style.display = "none";
+document.getElementById("hint-box").style.display = "none";
+let shuffled = [...allTopics].sort(() => Math.random() - 0.5);
+currentTopicPair = [shuffled, shuffled];
+const unusedCustom = customQuestions.filter(q => !q.used);
+if (unusedCustom.length > 0 && Math.random() < 0.4) {
+currentTopicPair = "Oma erikoiskysymys";
+}
+document.getElementById("step-intro").innerText = Taso ${currentStep + 1} (${prizes[currentStep]}): Valitse aihe;
+document.getElementById("topic-1-btn").innerText = currentTopicPair;
+document.getElementById("topic-2-btn").innerText = currentTopicPair;
+window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+async function selectTopic(topicIndex) {
+const chosenTopic = currentTopicPair[topicIndex];
+if (chosenTopic === "Oma erikoiskysymys") {
+const idx = customQuestions.findIndex(q => !q.used);
+if (idx !== -1) {
+customQuestions[idx].used = true;
+localStorage.setItem('kn_custom_q', JSON.stringify(customQuestions));
+prepareAndShowQuestion(customQuestions[idx]);
+return;
+}
+}
+await fetchQuestionFromServer(chosenTopic);
+}
+async function fetchQuestionFromServer(topicName) {
+document.getElementById("topic-screen").style.display = "none";
+document.getElementById("question-screen").style.display = "none";
+document.getElementById("loading-screen").style.display = "block";
+const difficultyDesc = currentStep < 3 ? "helppo ja lämminhenkinen aloituskysymys" :
+currentStep < 7 ? "keskitason yleistietokysymys" :
+"haastava mutta reilu finaalitason yleistietokysymys";
+const recentAvoid = askedHistory.slice(-25).join(" | ");
+try {
+const response = await fetch("/.netlify/functions/kysymys", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ topicName, difficultyDesc, currentStep, recentAvoid })
+});
+if (!response.ok) throw new Error("Palvelinvirhe");
+const parsed = await response.json();
+askedHistory.push(parsed.q);
+if (askedHistory.length > 150) askedHistory.shift();
+localStorage.setItem('kn_ai_history', JSON.stringify(askedHistory));
+prepareAndShowQuestion(parsed);
+} catch (err) {
+const fb = fallbackBank[Math.floor(Math.random() * fallbackBank.length)];
+setTimeout(() => prepareAndShowQuestion(fb), 500);
+}
+}
+function prepareAndShowQuestion(rawQuestion) {
+let allOptions = [
+{ text: rawQuestion.a, isCorrect: true },
+{ text: rawQuestion.w, isCorrect: false },
+{ text: rawQuestion.w, isCorrect: false },
+{ text: rawQuestion.w, isCorrect: false }
+];
+allOptions.sort(() => Math.random() - 0.5);
+currentQuestion = {
+q: rawQuestion.q,
+options: allOptions.map(o => o.text),
+correct: allOptions.findIndex(o => o.isCorrect),
+hint: rawQuestion.hint
+};
+showQuestion();
+}
+function showQuestion() {
+isAnswering = true;
+pendingSelection = null;
+document.getElementById("loading-screen").style.display = "none";
+document.getElementById("confirm-banner").style.display = "none";
+document.getElementById("topic-screen").style.display = "none";
+document.getElementById("question-screen").style.display = "block";
+document.getElementById("hint-box").style.display = "none";
+document.getElementById("question-text").innerText = currentQuestion.q;
+const optionsContainer = document.getElementById("options-container");
+optionsContainer.innerHTML = "";
+const letters = ["A", "B", "C", "D"];
+currentQuestion.options.forEach((opt, idx) => {
+const btn = document.createElement("button");
+btn.className = "option-btn";
+btn.id = opt-${idx};
+btn.innerHTML = <span class="letter">${letters[idx]}:</span> <span>${opt}</span>;
+btn.onclick = () => handleOptionClick(idx);
+optionsContainer.appendChild(btn);
+});
+window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function handleOptionClick(selectedIndex) {
+if (!isAnswering) return;
+if (pendingSelection !== selectedIndex) {
+pendingSelection = selectedIndex;
+for (let i = 0; i < 4; i++) {
+const b = document.getElementById(opt-${i});
+if (b) b.classList.remove("selected-confirm");
+}
+document.getElementById(opt-${selectedIndex}).classList.add("selected-confirm");
+document.getElementById("confirm-banner").style.display = "block";
+return;
+}
+isAnswering = false;
+document.getElementById("confirm-banner").style.display = "none";
+const correctIdx = currentQuestion.correct;
+const selectedBtn = document.getElementById(opt-${selectedIndex});
+const correctBtn = document.getElementById(opt-${correctIdx});
+selectedBtn.classList.remove("selected-confirm");
+if (selectedIndex === correctIdx) {
+selectedBtn.classList.add("correct");
+setTimeout(() => {
+currentStep++;
+if (currentStep >= 10) {
+endGame(true, true);
+} else {
+loadTopicScreen();
+}
+}, 1800);
+} else {
+selectedBtn.classList.add("wrong");
+correctBtn.classList.add("correct");
+setTimeout(() => {
+endGame(false);
+}, 2500);
+}
+}
+function use5050() {
+if (used5050 || !isAnswering) return;
+used5050 = true;
+document.getElementById("btn-5050").disabled = true;
+pendingSelection = null;
+document.getElementById("confirm-banner").style.display = "none";
+let wrongIndices =.filter(i => i !== currentQuestion.correct);
+wrongIndices.sort(() => Math.random() - 0.5);
+document.getElementById(opt-${wrongIndices}).classList.add("hidden-option");
+document.getElementById(opt-${wrongIndices}).classList.add("hidden-option");
+document.getElementById(opt-${wrongIndices}).classList.remove("selected-confirm");
+document.getElementById(opt-${wrongIndices}).classList.remove("selected-confirm");
 }
 function useHint() {
 if (usedHint || !isAnswering) return;
@@ -1050,7 +1351,4 @@ msg.innerText = Peli päättyi tähän. Turvatasojen ansiosta lopullinen tulokse
 }
 }
 startNewGame();
-
-<FollowUp>
-Haluatko, että kirjoitan myös **Tiedosto 1 (`netlify/functions/kysymys.js`)** -koodin tähän perään, jotta sinulla on molemmat koodit suoraan peräkkäin helppoa kopiointia varten?
-</FollowUp>
+    
