@@ -117,7 +117,134 @@
   <div class="sponsor-content" id="sponsor-display-text">Kultainen Nousu – Ilmainen tietovisa senioreille</div>
   <a href="#" target="_blank" class="sponsor-link" id="sponsor-display-link" style="display:none;">Tutustu kumppaniin</a>
 </div>
-<!-- LIITÄ OSA 2 TÄMÄN ALLE -->
+<script>
+const prizes = Array.of("500 pistettä", "1 000 pistettä", "2 500 pistettä", "5 000 pistettä (Turvataso)", "10 000 pistettä", "25 000 pistettä", "50 000 pistettä (Turvataso)", "100 000 pistettä", "250 000 pistettä", "500 000 pistettä");
+const safePrizes = Array.of("0 pistettä", "0 pistettä", "0 pistettä", "5 000 pistettä", "5 000 pistettä", "5 000 pistettä", "50 000 pistettä", "50 000 pistettä", "50 000 pistettä", "500 000 pistettä");
+const allTopics = Array.of("Suomen luonto ja eläimet", "Suomen historia", "Perinneruoat ja leivonta", "Kotimaan maantieto", "Vanhat suomalaiset sananlaskut", "Suomalainen iskelmä ja musiikki", "Kasvit, marjat ja puutarha", "Klassikkoelokuvat ja teatteri", "Suomalainen kirjallisuus", "Maailman maat ja pääkaupungit", "Terveys ja hyvinvointi", "Suomen presidentit ja valtiomiehet", "Keksinnöt ja tiede", "Kuvataide ja arkkitehtuuri", "Urheiluhistoria ja olympialaiset", "Kansanperinne ja Kalevala", "Sauna ja suomalainen arki", "Sää, vuodenajat ja tähtitaivas", "Käsityöt ja perinnetaidot", "1950–1980-lukujen muistot");
+const fallbackBank = Array.of(
+  { topic: "Suomen luonto", q: "Mikä lintu on valittu Suomen kansallislinnuksi?", a: "Laulujoutsen", w: Array.of("Käki", "Pääskynen", "Merikotka"), hint: "Tämä suuri valkoinen lintu pesii järvillä ja soilla." },
+  { topic: "Suomen historia", q: "Minä vuonna Suomi itsenäistyi?", a: "1917", w: Array.of("1918", "1939", "1945"), hint: "Itsenäisyysjulistus annettiin joulukuun alussa yli sata vuotta sitten." },
+  { topic: "Kirjallisuus", q: "Kuka loi kaikkien tuntemat Muumi-hahmot?", a: "Tove Jansson", w: Array.of("Astrid Lindgren", "Minna Canth", "Aino Kallas"), hint: "Suomenruotsalainen kirjailija ja taidemaalari." },
+  { topic: "Musiikki", q: "Kuka sävelsi 'Finlandia'-hymnin?", a: "Jean Sibelius", w: Array.of("Oskar Merikanto", "Toivo Kuula", "Leevi Madetoja"), hint: "Suomen kansallissäveltäjä, jonka koti Ainola sijaitsee Järvenpäässä." }
+);
+
+let currentStep = 0, currentTopicPair = Array.of(), currentQuestion = null, used5050 = false, usedHint = false, usedSwap = false, isAnswering = false, pendingSelection = null, isLargeFont = false;
+let askedHistory = Array.of(), customQuestions = Array.of();
+try {
+  if (localStorage.getItem('kn_ai_history')) askedHistory = JSON.parse(localStorage.getItem('kn_ai_history'));
+  if (localStorage.getItem('kn_custom_q')) customQuestions = JSON.parse(localStorage.getItem('kn_custom_q'));
+} catch (e) {}
+
+function openAdmin() {
+  const panel = document.getElementById('settings-panel');
+  if (panel.style.display === 'block') { panel.style.display = 'none'; return; }
+  if (prompt("Syötä ylläpitokoodi (oletus: 1234):") === "1234") {
+    panel.style.display = 'block';
+    document.getElementById('sponsor-name-input').value = localStorage.getItem('kn_sponsor_name') || '';
+    document.getElementById('sponsor-text-input').value = localStorage.getItem('kn_sponsor_text') || '';
+    document.getElementById('sponsor-url-input').value = localStorage.getItem('kn_sponsor_url') || '';
+  }
+}
+
+function loadSponsor() {
+  const sName = localStorage.getItem('kn_sponsor_name'), sText = localStorage.getItem('kn_sponsor_text'), sUrl = localStorage.getItem('kn_sponsor_url');
+  if (sName || sText) document.getElementById('sponsor-display-text').innerText = `${sName ? sName + ' – ' : ''}${sText || ''}`;
+  const linkEl = document.getElementById('sponsor-display-link');
+  if (sUrl) { linkEl.href = sUrl.startsWith('http') ? sUrl : 'https://' + sUrl; linkEl.style.display = 'inline-block'; } else { linkEl.style.display = 'none'; }
+}
+
+function saveSponsor() {
+  localStorage.setItem('kn_sponsor_name', document.getElementById('sponsor-name-input').value.trim());
+  localStorage.setItem('kn_sponsor_text', document.getElementById('sponsor-text-input').value.trim());
+  localStorage.setItem('kn_sponsor_url', document.getElementById('sponsor-url-input').value.trim());
+  loadSponsor();
+  document.getElementById('settings-status').innerText = "✅ Sponsoritiedot päivitetty!";
+}
+
+function addCustomQuestion() {
+  const q = document.getElementById('custom-q').value.trim(), a = document.getElementById('custom-a').value.trim(), w1 = document.getElementById('custom-w1').value.trim(), w2 = document.getElementById('custom-w2').value.trim(), w3 = document.getElementById('custom-w3').value.trim(), hint = document.getElementById('custom-hint').value.trim() || "Oma erikoiskysymys!";
+  if (!q || !a || !w1 || !w2 || !w3) { document.getElementById('settings-status').innerText = "⚠️ Täytä kaikki kentät."; return; }
+  customQuestions.push({ topic: "Oma erikoiskysymys", q, a, w: Array.of(w1, w2, w3), hint, used: false });
+  localStorage.setItem('kn_custom_q', JSON.stringify(customQuestions));
+  document.getElementById('custom-q').value = ""; document.getElementById('custom-a').value = ""; document.getElementById('custom-w1').value = ""; document.getElementById('custom-w2').value = ""; document.getElementById('custom-w3').value = ""; document.getElementById('custom-hint').value = "";
+  document.getElementById('settings-status').innerText = `✅ Lisätty! (${customQuestions.length} kpl)`;
+}
+
+function clearHistory() {
+  askedHistory = Array.of(); localStorage.setItem('kn_ai_history', JSON.stringify(askedHistory));
+  customQuestions.forEach(q => q.used = false); localStorage.setItem('kn_custom_q', JSON.stringify(customQuestions));
+  document.getElementById('settings-status').innerText = "Historia nollattu.";
+}
+
+function toggleFontSize() {
+  isLargeFont = !isLargeFont;
+  document.documentElement.style.setProperty('--base-font', isLargeFont ? '22px' : '18px');
+  document.getElementById('zoom-btn').innerText = isLargeFont ? 'Normaali teksti (-)' : 'Suurenna tekstiä (+)';
+}
+
+function startNewGame() {
+  currentStep = 0; used5050 = false; usedHint = false; usedSwap = false;
+  document.getElementById("btn-5050").disabled = false; document.getElementById("btn-hint").disabled = false; document.getElementById("btn-swap").disabled = false;
+  document.getElementById("lifelines-bar").style.display = "grid"; document.getElementById("end-screen").style.display = "none";
+  loadSponsor(); loadTopicScreen();
+}
+
+function updateHeader() {
+  const currentPot = currentStep === 0 ? "0 pistettä" : prizes.at(currentStep - 1).replace(" (Turvataso)", "");
+  document.getElementById("score-display").innerText = `Taso ${currentStep + 1} / 10 • ${currentPot}`;
+  const walkBtn = document.getElementById("walk-away-btn");
+  if (currentStep > 0) { walkBtn.style.display = "inline-block"; walkBtn.innerText = `Lopeta peli ja talleta ${currentPot}`; } else { walkBtn.style.display = "none"; }
+}
+
+function loadTopicScreen() {
+  updateHeader();
+  document.getElementById("topic-screen").style.display = "block"; document.getElementById("question-screen").style.display = "none"; document.getElementById("loading-screen").style.display = "none"; document.getElementById("hint-box").style.display = "none";
+  let shuffled = Array.from(allTopics).sort(() => Math.random() - 0.5);
+  currentTopicPair = Array.of(shuffled.at(0), shuffled.at(1));
+  if (customQuestions.filter(q => !q.used).length > 0 && Math.random() < 0.4) currentTopicPair.splice(0, 1, "Oma erikoiskysymys");
+  document.getElementById("step-intro").innerText = `Taso ${currentStep + 1} (${prizes.at(currentStep)}): Valitse aihe`;
+  document.getElementById("topic-1-btn").innerText = currentTopicPair.at(0);
+  document.getElementById("topic-2-btn").innerText = currentTopicPair.at(1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function selectTopic(topicIndex) {
+  const chosenTopic = currentTopicPair.at(topicIndex);
+  if (chosenTopic === "Oma erikoiskysymys") {
+    const idx = customQuestions.findIndex(q => !q.used);
+    if (idx !== -1) { customQuestions.at(idx).used = true; localStorage.setItem('kn_custom_q', JSON.stringify(customQuestions)); prepareAndShowQuestion(customQuestions.at(idx)); return; }
+  }
+  await fetchQuestionFromServer(chosenTopic);
+}
+
+async function fetchQuestionFromServer(topicName) {
+  document.getElementById("topic-screen").style.display = "none"; document.getElementById("question-screen").style.display = "none"; document.getElementById("loading-screen").style.display = "block";
+  const difficultyDesc = currentStep < 3 ? "helppo ja lämminhenkinen aloituskysymys" : currentStep < 7 ? "keskitason yleistietokysymys" : "haastava mutta reilu finaalitason yleistietokysymys";
+  const recentAvoid = askedHistory.slice(-25).join(" | ");
+  try {
+    const response = await fetch("/.netlify/functions/kysymys", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ topicName, difficultyDesc, currentStep, recentAvoid }) });
+    if (!response.ok) throw new Error("Palvelinvirhe");
+    const parsed = await response.json();
+    askedHistory.push(parsed.q); if (askedHistory.length > 150) askedHistory.shift();
+    localStorage.setItem('kn_ai_history', JSON.stringify(askedHistory));
+    prepareAndShowQuestion(parsed);
+  } catch (err) {
+    const fb = fallbackBank.at(Math.floor(Math.random() * fallbackBank.length));
+    setTimeout(() => prepareAndShowQuestion(fb), 500);
+  }
+}
+
+function prepareAndShowQuestion(rawQuestion) {
+  let allOptions = Array.of({ text: rawQuestion.a, isCorrect: true }, { text: rawQuestion.w.at(0), isCorrect: false }, { text: rawQuestion.w.at(1), isCorrect: false }, { text: rawQuestion.w.at(2), isCorrect: false });
+  allOptions.sort(() => Math.random() - 0.5);
+  currentQuestion = { q: rawQuestion.q, options: allOptions.map(o => o.text), correct: allOptions.findIndex(o => o.isCorrect), hint: rawQuestion.hint };
+  showQuestion();
+}
+
+function showQuestion() {
+  isAnswering = true; pendingSelection = null;
+
+  <!-- LIITÄ OSA 2 TÄMÄN ALLE -->
 <script>
 const prizes = Array.of("500 pistettä", "1 000 pistettä", "2 500 pistettä", "5 000 pistettä (Turvataso)", "10 000 pistettä", "25 000 pistettä", "50 000 pistettä (Turvataso)", "100 000 pistettä", "250 000 pistettä", "500 000 pistettä");
 const safePrizes = Array.of("0 pistettä", "0 pistettä", "0 pistettä", "5 000 pistettä", "5 000 pistettä", "5 000 pistettä", "50 000 pistettä", "50 000 pistettä", "50 000 pistettä", "500 000 pistettä");
