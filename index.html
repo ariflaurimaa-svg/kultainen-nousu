@@ -19,7 +19,7 @@
   .status { padding:12px 16px; color:var(--bg); background:var(--gold); font-weight:bold; border-radius:12px; text-align:center; }
   .ctrl,.life,.big,.stop { border:2px solid var(--gold); border-radius:14px; padding:14px 16px; color:var(--text); background:#2b3a5c; font-weight:bold; }
   .ctrl { padding:10px 12px; font-size:.95rem; }
-  .lifelines { display:grid; grid-template-columns:repeat(3,1fr); margin-bottom:26px; }
+  .lifelines { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:26px; }
   .life:disabled { opacity:.4; }
   .topic,.question,.end,.loading { text-align:center; }
   .prompt { font-size:1.4rem; line-height:1.45; margin:0 0 22px; }
@@ -76,17 +76,23 @@
     <button class="life" id="life-swap" type="button">Vaihda kysymys</button>
   </div>
   <section class="loading" id="loading" hidden><div class="spinner"></div><p class="prompt">Haetaan kysymystä…</p></section>
-  <section class="topic" id="topic-screen"><p class="prompt" id="step-intro">Valitse mieleisesi aihealue:</p><div class="topic-buttons"><button class="big topic-choice" type="button" data-topic="0">Aihe 1</button><button class="big topic-choice" type="button" data-topic="1">Aihe 2</button></div><button class="stop" id="walk-away" type="button" hidden>Lopeta peli ja talleta pisteet</button></section>
-  <section class="question" id="question-screen" hidden><p class="prompt" id="question-text"></p><div class="hint" id="hint-box"></div><div class="options" id="options"></div><div class="confirm" id="confirm-banner">Napauta valittua vastausta uudelleen lukitaksesi sen.</div></section>
+  <section class="topic" id="topic-screen">
+    <p class="prompt" id="step-intro">Valitse mieleisesi aihealue:</p>
+    <div class="topic-buttons"><button class="big topic-choice" type="button" data-topic="0">Aihe 1</button><button class="big topic-choice" type="button" data-topic="1">Aihe 2</button></div>
+    <button class="stop" id="walk-away" type="button" hidden>Lopeta peli ja talleta pisteet</button>
+  </section>
+  <section class="question" id="question-screen" hidden>
+    <p class="prompt" id="question-text"></p><div class="hint" id="hint-box"></div><div class="options" id="options"></div><div class="confirm" id="confirm-banner">Napauta valittua vastausta uudelleen lukitaksesi sen.</div>
+  </section>
   <section class="end" id="end-screen" hidden><h2 id="end-title">Peli päättyi</h2><p class="prompt" id="end-message"></p><button class="big" id="new-game" type="button">Pelaa uusi kierros</button></section>
 </main>
 <aside class="sponsor"><span>Päivän pelihetken mahdollistaa</span><strong id="sponsor-display">Kultainen Nousu – Ilmainen tietovisa senioreille</strong><a id="sponsor-link" href="#" target="_blank" rel="noopener noreferrer">Tutustu kumppaniin</a></aside>
 <script>
 'use strict';
 (() => {
-  const prizes = ["500 pistettä", "1 000 pistettä", "2 500 pistettä", "5 000 pistettä (Turvataso)", "10 000 pistettä", "25 000 pistettä", "50 000 pistettä (Turvataso)", "100 000 pistettä", "250 000 pistettä", "500 000 pistettä"];
-  const safePrizes = ["0 pistettä", "0 pistettä", "0 pistettä", "5 000 pistettä", "5 000 pistettä", "5 000 pistettä", "50 000 pistettä", "50 000 pistettä", "50 000 pistettä", "500 000 pistettä"];
-  const topics = ["Suomen luonto ja eläimet", "Suomen historia", "Perinneruoat ja leivonta", "Kotimaan maantieto", "Suomalaiset sananlaskut", "Iskelmä ja musiikki", "Kasvit ja puutarha", "Elokuvat ja teatteri", "Kirjallisuus", "Maailman maat", "Terveys ja hyvinvointi", "Suomen presidentit", "Keksinnöt ja tiede", "Kuvataide ja arkkitehtuuri", "Urheiluhistoria", "Kansanperinne ja Kalevala", "Sauna ja suomalainen arki", "Sää ja tähtitaivas", "Käsityöt", "1950–1980-lukujen muistot"];
+  const prizes = ["500 pistettä","1 000 pistettä","2 500 pistettä","5 000 pistettä (Turvataso)","10 000 pistettä","25 000 pistettä","50 000 pistettä (Turvataso)","100 000 pistettä","250 000 pistettä","500 000 pistettä"];
+  const safePrizes = ["0 pistettä","0 pistettä","0 pistettä","5 000 pistettä","5 000 pistettä","5 000 pistettä","50 000 pistettä","50 000 pistettä","50 000 pistettä","500 000 pistettä"];
+  const topics = ["Suomen luonto ja eläimet","Suomen historia","Perinneruoat ja leivonta","Kotimaan maantieto","Suomalaiset sananlaskut","Iskelmä ja musiikki","Kasvit ja puutarha","Elokuvat ja teatteri","Kirjallisuus","Maailman maat","Terveys ja hyvinvointi","Suomen presidentit","Keksinnöt ja tiede","Kuvataide ja arkkitehtuuri","Urheiluhistoria","Kansanperinne ja Kalevala","Sauna ja suomalainen arki","Sää ja tähtitaivas","Käsityöt","1950–1980-lukujen muistot"];
   const fallback = [
     {q:"Mikä lintu on Suomen kansallislintu?",a:"Laulujoutsen",w:["Käki","Pääskynen","Merikotka"],hint:"Suuri valkoinen lintu, joka viihtyy järvillä."},
     {q:"Minä vuonna Suomi itsenäistyi?",a:"1917",w:["1918","1939","1945"],hint:"Itsenäisyysjulistus annettiin joulukuussa."},
@@ -97,56 +103,69 @@
   ];
   const $ = id => document.getElementById(id);
   const read = key => { try { return localStorage.getItem(key); } catch (_) { return null; } };
-  const write = (key, value) => { try { localStorage.setItem(key, value); return true; } catch (_) { return false; } };
-  let step=0, pair=[], question=null, selected=-1, answering=true, used5050=false, usedHint=false, usedSwap=false, largeFont=false;
-  let history=[], customs=[];
-  try { history=JSON.parse(read('kn_ai_history') || '[]'); if (!Array.isArray(history)) history=[]; } catch (_) { history=[]; }
-  try { customs=JSON.parse(read('kn_custom_q') || '[]'); if (!Array.isArray(customs)) customs=[]; } catch (_) { customs=[]; }
-  function updateScore() { $('score').textContent=`Taso ${step+1} / 10 • ${step ? prizes[step-1].replace(' (Turvataso)','') : '0 pistettä'}`; $('walk-away').hidden=step===0; }
+  const write = (key,value) => { try { localStorage.setItem(key,value); return true; } catch (_) { return false; } };
+  let step=0,pair=[],question=null,selected=-1,answering=true,used5050=false,usedHint=false,usedSwap=false,largeFont=false;
+  let history=[],customs=[];
+  try { history=JSON.parse(read('kn_ai_history')||'[]'); if(!Array.isArray(history)) history=[]; } catch (_) { history=[]; }
+  try { customs=JSON.parse(read('kn_custom_q')||'[]'); if(!Array.isArray(customs)) customs=[]; } catch (_) { customs=[]; }
+
+  function updateScore() {
+    $('score').textContent=`Taso ${step+1} / 10 • ${step ? prizes[step-1].replace(' (Turvataso)','') : '0 pistettä'}`;
+    $('walk-away').hidden=step===0;
+  }
   function topicScreen() {
-    updateScore(); $('topic-screen').hidden=false; $('question-screen').hidden=true; $('loading').hidden=true; $('end-screen').hidden=true; $('hint-box').style.display='none'; $('confirm-banner').style.display='none';
-    const shuffled=topics.slice().sort(()=>Math.random()-.5); pair=[shuffled[0],shuffled[1]];
-    const available=customs.findIndex(q=>!q.used); if (available>=0 && Math.random()<.4) pair[0]='Oma erikoiskysymys';
+    updateScore();
+    $('topic-screen').hidden=false;$('question-screen').hidden=true;$('loading').hidden=true;$('end-screen').hidden=true;$('lifelines').hidden=false;
+    $('hint-box').style.display='none';$('confirm-banner').style.display='none';
+    const shuffled=topics.slice().sort(()=>Math.random()-.5);pair=[shuffled[0],shuffled[1]];
+    const available=customs.findIndex(q=>!q.used);if(available>=0&&Math.random()<.4)pair[0]='Oma erikoiskysymys';
     document.querySelectorAll('.topic-choice').forEach(button=>button.textContent=pair[Number(button.dataset.topic)]);
     $('step-intro').textContent=`Taso ${step+1} (${prizes[step]}): valitse aihe`;
     window.scrollTo(0,0);
   }
   function showQuestion(raw) {
-    if (!raw || typeof raw.q!=='string' || typeof raw.a!=='string' || !Array.isArray(raw.w) || raw.w.length<3) raw=fallback[Math.floor(Math.random()*fallback.length)];
+    if(!raw||typeof raw.q!=='string'||typeof raw.a!=='string'||!Array.isArray(raw.w)||raw.w.length<3)raw=fallback[Math.floor(Math.random()*fallback.length)];
     const choices=[{text:raw.a,correct:true},...raw.w.slice(0,3).map(text=>({text,correct:false}))].sort(()=>Math.random()-.5);
-    question={q:raw.q,choices,hint:raw.hint||'Mieti rauhassa ennen vastaamista.'}; selected=-1; answering=true;
-    $('question-text').textContent=question.q; $('hint-box').textContent='Vihje: '+question.hint; $('hint-box').style.display='none'; $('confirm-banner').style.display='none';
-    const box=$('options'); box.replaceChildren();
-    choices.forEach((choice,index)=>{const button=document.createElement('button'); button.type='button'; button.className='option'; button.dataset.index=String(index); const letter=document.createElement('span'); letter.className='letter'; letter.textContent=String.fromCharCode(65+index)+'.'; const text=document.createElement('span'); text.textContent=choice.text; button.append(letter,text); button.addEventListener('click',()=>selectAnswer(index)); box.append(button);});
-    $('topic-screen').hidden=true; $('loading').hidden=true; $('question-screen').hidden=false; window.scrollTo(0,0);
+    question={q:raw.q,choices,hint:raw.hint||'Mieti rauhassa ennen vastaamista.'};selected=-1;answering=true;
+    $('question-text').textContent=question.q;$('hint-box').textContent='Vihje: '+question.hint;$('hint-box').style.display='none';$('confirm-banner').style.display='none';
+    const box=$('options');box.replaceChildren();
+    choices.forEach((choice,index)=>{const button=document.createElement('button');button.type='button';button.className='option';button.dataset.index=String(index);const letter=document.createElement('span');letter.className='letter';letter.textContent=String.fromCharCode(65+index)+'.';const text=document.createElement('span');text.textContent=choice.text;button.append(letter,text);button.addEventListener('click',()=>selectAnswer(index));box.append(button);});
+    $('topic-screen').hidden=true;$('loading').hidden=true;$('question-screen').hidden=false;$('lifelines').hidden=false;window.scrollTo(0,0);
   }
   async function chooseTopic(index) {
-    if (answering===false) return;
-    const topic=pair[index]; answering=false; $('topic-screen').hidden=true; $('loading').hidden=false;
-    if (topic==='Oma erikoiskysymys') { const custom=customs.find(q=>!q.used); if (custom) {custom.used=true;write('kn_custom_q',JSON.stringify(customs));showQuestion(custom);return;} }
-    try {
+    if(!answering)return;
+    const topic=pair[index];answering=false;$('topic-screen').hidden=true;$('loading').hidden=false;
+    if(topic==='Oma erikoiskysymys'){const custom=customs.find(q=>!q.used);if(custom){custom.used=true;write('kn_custom_q',JSON.stringify(customs));showQuestion(custom);return;}}
+    try{
       const response=await fetch('/.netlify/functions/kysymys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topicName:topic,difficultyDesc:step<3?'helppo':step<7?'keskitaso':'haastava',currentStep:step,recentAvoid:history.slice(-25).join(' | ')})});
-      if (!response.ok) throw new Error('Question service unavailable');
-      const generated=await response.json();
-      if (typeof generated.q==='string') { history.push(generated.q); if(history.length>150)history.shift(); write('kn_ai_history',JSON.stringify(history)); }
-      answering=true; showQuestion(generated);
-    } catch (_) { answering=true; showQuestion(fallback[Math.floor(Math.random()*fallback.length)]); }
+      if(!response.ok)throw new Error('Question service unavailable');
+      const generated=await response.json();if(typeof generated.q==='string'){history.push(generated.q);if(history.length>150)history.shift();write('kn_ai_history',JSON.stringify(history));}
+      showQuestion(generated);
+    }catch(_){showQuestion(fallback[Math.floor(Math.random()*fallback.length)]);}
   }
   function selectAnswer(index) {
-    if (!answering || !question) return;
-    if (selected!==index) { selected=index; document.querySelectorAll('.option').forEach((button,i)=>button.classList.toggle('selected',i===index)); $('confirm-banner').style.display='block'; return; }
-    answering=false; $('confirm-banner').style.display='none';
-    const buttons=[...document.querySelectorAll('.option')]; buttons.forEach((button,i)=>{button.disabled=true;if(question.choices[i].correct)button.classList.add('correct');else if(i===index)button.classList.add('wrong');});
-    if(question.choices[index].correct) { setTimeout(()=>{step++;if(step>=10){finish(true,false);}else{resetLifelines();topicScreen();}},900); }
-    else setTimeout(()=>finish(false,false),900);
+    if(!answering||!question)return;
+    if(selected!==index){selected=index;document.querySelectorAll('.option').forEach((button,i)=>button.classList.toggle('selected',i===index));$('confirm-banner').style.display='block';return;}
+    answering=false;$('confirm-banner').style.display='none';
+    const buttons=[...document.querySelectorAll('.option')];
+    buttons.forEach((button,i)=>{button.disabled=true;if(question.choices[i].correct)button.classList.add('correct');else if(i===index)button.classList.add('wrong');});
+    if(question.choices[index].correct){
+      setTimeout(()=>{step++;if(step>=10){finish(true,false);}else{resetLifelines();topicScreen();}},900);
+    }else{
+      setTimeout(()=>finish(false,false),900);
+    }
   }
-  function resetLifelines() { used5050=false;usedHint=false;usedSwap=false; $('life-5050').disabled=false;$('life-hint').disabled=false;$('life-swap').disabled=false; }
-  function finish(won,walked) { const points=won?prizes[9]:(walked?(step?prizes[step-1].replace(' (Turvataso)',''):'0 pistettä'):(step?safePrizes[step-1]:'0 pistettä')); $('topic-screen').hidden=true;$('question-screen').hidden=true;$('loading').hidden=true;$('lifelines').hidden=true;$('end-screen').hidden=false; $('end-title').textContent=won?'Onneksi olkoon!':'Peli päättyi';$('end-message').textContent=`Saat ${points}. ${walked?'Hyvä päätös!':won?'Voitit pelin!':'Kiitos pelaamisesta!'}`;answering=false; }
-  function use5050() { if(!question||used5050||!answering)return; const wrong=question.choices.map((c,i)=>!c.correct?i:-1).filter(i=>i>=0).sort(()=>Math.random()-.5).slice(0,2); wrong.forEach(i=>{const b=document.querySelector(`.option[data-index="${i}"]`);if(b)b.classList.add('hidden');});used5050=true;$('life-5050').disabled=true; }
-  function useHint() { if(!question||usedHint||!answering)return; $('hint-box').style.display='block';usedHint=true;$('life-hint').disabled=true; }
-  function useSwap() { if(!question||usedSwap||!answering)return;usedSwap=true;$('life-swap').disabled=true;showQuestion(fallback[Math.floor(Math.random()*fallback.length)]); }
-  function newGame() { step=0;resetLifelines();$('lifelines').hidden=false;topicScreen(); }
-  function loadSponsor() { const n=read('kn_sponsor_name')||'',m=read('kn_sponsor_text')||'',url=read('kn_sponsor_url')||''; if(n||m)$('sponsor-display').textContent=(n?n+' – ':'')+m; const link=$('sponsor-link');if(url){link.href=/^https?:\/\//i.test(url)?url:'https://'+url;link.style.display='inline-block';}else link.style.display='none'; }
+  function resetLifelines(){used5050=false;usedHint=false;usedSwap=false;$('life-5050').disabled=false;$('life-hint').disabled=false;$('life-swap').disabled=false;}
+  function finish(won,walked){
+    const points=won?'500 000 pistettä':walked?(step?prizes[step-1].replace(' (Turvataso)',''):'0 pistettä'):(step?safePrizes[step-1]:'0 pistettä');
+    $('topic-screen').hidden=true;$('question-screen').hidden=true;$('loading').hidden=true;$('lifelines').hidden=true;$('end-screen').hidden=false;
+    $('end-title').textContent=won?'Onneksi olkoon!':'Peli päättyi';$('end-message').textContent=`Saat ${points}. ${walked?'Hyvä päätös!':won?'Voitit pelin!':'Kiitos pelaamisesta!'}`;answering=false;
+  }
+  function use5050(){if(!question||used5050||!answering)return;const wrong=question.choices.map((c,i)=>!c.correct?i:-1).filter(i=>i>=0).sort(()=>Math.random()-.5).slice(0,2);wrong.forEach(i=>{const b=document.querySelector(`.option[data-index="${i}"]`);if(b)b.classList.add('hidden');});used5050=true;$('life-5050').disabled=true;}
+  function useHint(){if(!question||usedHint||!answering)return;$('hint-box').style.display='block';usedHint=true;$('life-hint').disabled=true;}
+  function useSwap(){if(!question||usedSwap||!answering)return;usedSwap=true;$('life-swap').disabled=true;showQuestion(fallback[Math.floor(Math.random()*fallback.length)]);}
+  function newGame(){step=0;resetLifelines();$('lifelines').hidden=false;$('end-screen').hidden=true;topicScreen();}
+  function loadSponsor(){const n=read('kn_sponsor_name')||'',m=read('kn_sponsor_text')||'',url=read('kn_sponsor_url')||'';if(n||m)$('sponsor-display').textContent=(n?n+' – ':'')+m;const link=$('sponsor-link');if(url){link.href=/^https?:\/\//i.test(url)?url:'https://'+url;link.style.display='inline-block';}else link.style.display='none';}
   $('admin-toggle').addEventListener('click',()=>{const panel=$('settings');if(panel.style.display==='block'){panel.style.display='none';return;}if(window.prompt('Ylläpitokoodi (oletus: 1234):')==='1234'){panel.style.display='block';$('sponsor-name').value=read('kn_sponsor_name')||'';$('sponsor-message').value=read('kn_sponsor_text')||'';$('sponsor-url').value=read('kn_sponsor_url')||'';}});
   $('zoom-toggle').addEventListener('click',()=>{largeFont=!largeFont;document.body.style.fontSize=largeFont?'22px':'18px';$('zoom-toggle').textContent=largeFont?'Normaali teksti (-)':'Suurenna tekstiä (+)';});
   $('save-sponsor').addEventListener('click',()=>{write('kn_sponsor_name',$('sponsor-name').value.trim());write('kn_sponsor_text',$('sponsor-message').value.trim());write('kn_sponsor_url',$('sponsor-url').value.trim());loadSponsor();$('settings-status').textContent='Sponsoritiedot päivitetty.';});
