@@ -26,12 +26,28 @@ exports.handler = async function handler(event) {
     return reply(400, { error: "Virheellinen JSON-pyyntö." });
   }
 
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return reply(400, { error: "Pyynnön tietosisältö ei kelpaa." });
+  }
+
   const theme = typeof input.theme === "string"
     ? input.theme.trim().slice(0, 120)
     : "Kaikki aihealueet";
+
+  const languageNames = {
+    suomi: "suomeksi",
+    ruotsi: "ruotsiksi",
+    englanti: "englanniksi"
+  };
+  const languageKey = typeof input.language === "string"
+    ? input.language.trim().toLowerCase()
+    : "suomi";
+  const language = languageNames[languageKey] || languageNames.suomi;
+
   const level = Number.isFinite(Number(input.level))
     ? Math.max(1, Math.min(15, Math.floor(Number(input.level))))
     : 1;
+
   const avoid = Array.isArray(input.avoid)
     ? input.avoid
         .filter((item) => typeof item === "string")
@@ -47,7 +63,8 @@ exports.handler = async function handler(event) {
   }
 
   const prompt = [
-    "Luo yksi faktapohjainen ja yksiselitteinen suomenkielinen tietovisakysymys.",
+    `Luo yksi faktapohjainen ja yksiselitteinen tietovisakysymys ${language}.`,
+    `Kysymyksen, kaikkien vastausvaihtoehtojen ja selityksen tulee olla ${language}.`,
     `Aihe: ${theme}.`,
     `Vaikeustaso: ${level}/15.`,
     "Palauta vain JSON-objekti ilman markdownia tässä muodossa:",
@@ -56,7 +73,7 @@ exports.handler = async function handler(event) {
     "Vaihtoehtoja pitää olla täsmälleen neljä ja vain yksi saa olla oikea.",
     "Käytä selkeää yleiskieltä ja vältä epävarmoja tai kiistanalaisia väitteitä.",
     avoid.length
-      ? `Älä toista näitä aiempia kysymyksiä: ${JSON.stringify(avoid)}`
+      ? `Älä toista näitä aiempia kysymyksiä tai tee niistä pieniä muunnelmia: ${JSON.stringify(avoid)}`
       : ""
   ].filter(Boolean).join("\n");
 
@@ -74,7 +91,7 @@ exports.handler = async function handler(event) {
         messages: [
           {
             role: "system",
-            content: "Olet tarkka suomenkielinen tietovisakysymysten laatija."
+            content: "Olet tarkka tietovisakysymysten laatija. Noudata pyydettyä kieltä ja palauta vain pyydetty JSON."
           },
           { role: "user", content: prompt }
         ]
@@ -84,7 +101,9 @@ exports.handler = async function handler(event) {
     const data = await response.json();
     if (!response.ok) {
       console.error("OpenAI request failed", response.status, data);
-      return reply(502, { error: "Kysymyspalvelu ei ole juuri nyt käytettävissä." });
+      return reply(502, {
+        error: "Kysymyspalvelu ei ole juuri nyt käytettävissä."
+      });
     }
 
     const content = data?.choices?.[0]?.message?.content;
