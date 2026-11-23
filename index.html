@@ -35,7 +35,31 @@
 <body>
   <div class="app">
     <main class="main">
-      <header class="top"><h1>Kultainen Nousu</h1><div class="controls"><select id="themeSelect" aria-label="Teema"><option value="Kaikki aihealueet (yleistieto)">Yleistieto</option><option value="Suomen ja maailman historia">Historia</option><option value="Urheilu ja olympialaiset">Urheilu</option><option value="Musiikki, elokuvat ja popkulttuuri">Viihde</option><option value="Tiede, luonto ja avaruus">Tiede &amp; luonto</option><option value="Maantieto ja matkailu">Maantieto</option></select><select id="timeSelect" aria-label="Vastausaika"><option value="30">30 sekuntia</option><option value="45">45 sekuntia</option><option value="20">20 sekuntia</option><option value="0">Ei aikarajaa</option></select><button id="soundBtn" aria-pressed="true">🔊 Äänet: PÄÄLLÄ</button></div></header>
+      <header class="top">
+        <h1>Kultainen Nousu</h1>
+        <div class="controls">
+          <select id="themeSelect" aria-label="Teema">
+            <option value="Kaikki aihealueet (yleistieto)">Yleistieto</option>
+            <option value="Suomen ja maailman historia">Historia</option>
+            <option value="Urheilu ja olympialaiset">Urheilu</option>
+            <option value="Musiikki, elokuvat ja popkulttuuri">Viihde</option>
+            <option value="Tiede, luonto ja avaruus">Tiede &amp; luonto</option>
+            <option value="Maantieto ja matkailu">Maantieto</option>
+          </select>
+          <select id="languageSelect" aria-label="Kieli">
+            <option value="suomi">Suomi</option>
+            <option value="ruotsi">Ruotsi</option>
+            <option value="englanti">Englanti</option>
+          </select>
+          <select id="timeSelect" aria-label="Vastausaika">
+            <option value="30">30 sekuntia</option>
+            <option value="45">45 sekuntia</option>
+            <option value="20">20 sekuntia</option>
+            <option value="0">Ei aikarajaa</option>
+          </select>
+          <button id="soundBtn" aria-pressed="true">🔊 Äänet: PÄÄLLÄ</button>
+        </div>
+      </header>
       <section class="status"><div class="timer"><div id="timerDisplay" class="timer-circle">30</div><div><div>Aikaa jäljellä</div><strong id="guaranteedDisplay" class="guaranteed">Turvataso: 0 €</strong></div></div><div class="lifelines"><button id="ll50" class="lifeline">50:50</button><button id="llAudience" class="lifeline">👥 Yleisö</button><button id="llPhone" class="lifeline">📞 Kilauta</button></div></section>
       <section id="scoreboard" class="scoreboard"><h2 id="resultTitle"></h2><div id="resultText"></div><ol id="bestList" class="best-list"></ol></section>
       <section class="question"><div id="categoryBadge" class="category">Tervetuloa peliin</div><div id="questionText">Valitse teema ja paina “Aloita uusi peli”.</div></section>
@@ -47,7 +71,25 @@
   <script>
     const PRIZES=[100,200,300,500,1000,2000,4000,8000,16000,32000,64000,125000,250000,500000,1000000];
     const FALLBACK=[{q:"Mikä on Suomen pohjoisin kunta?",options:["Inari","Utsjoki","Enontekiö","Sodankylä"],correct:1,explanation:"Utsjoki on Suomen pohjoisin kunta."},{q:"Mikä on Suomen pääkaupunki?",options:["Turku","Helsinki","Tampere","Vaasa"],correct:1,explanation:"Helsinki on Suomen pääkaupunki."},{q:"Kuka sävelsi Finlandia-hymnin?",options:["Oskar Merikanto","Jean Sibelius","Leevi Madetoja","Toivo Kuula"],correct:1,explanation:"Jean Sibelius sävelsi Finlandian."},{q:"Kumpi näistä on planeetta?",options:["Mars","Jupiter","Kuu","Aurinko"],correct:1,explanation:"Jupiter on planeetta."},{q:"Minä vuonna Suomi voitti ensimmäisen jääkiekon MM-kultansa?",options:["1992","1995","1998","2011"],correct:1,explanation:"Suomi voitti ensimmäisen MM-kultansa 1995."}];
-    const els={theme:document.getElementById("themeSelect"),time:document.getElementById("timeSelect"),timer:document.getElementById("timerDisplay"),guaranteed:document.getElementById("guaranteedDisplay"),category:document.getElementById("categoryBadge"),question:document.getElementById("questionText"),helper:document.getElementById("helperMessage"),answers:[...document.querySelectorAll(".answer")],ladder:document.getElementById("ladderList"),start:document.getElementById("startBtn"),walk:document.getElementById("walkAwayBtn"),sound:document.getElementById("soundBtn"),ll50:document.getElementById("ll50"),llAudience:document.getElementById("llAudience"),llPhone:document.getElementById("llPhone"),scoreboard:document.getElementById("scoreboard")};
+    const els={
+      theme:document.getElementById("themeSelect"),
+      language:document.getElementById("languageSelect"),
+      time:document.getElementById("timeSelect"),
+      timer:document.getElementById("timerDisplay"),
+      guaranteed:document.getElementById("guaranteedDisplay"),
+      category:document.getElementById("categoryBadge"),
+      question:document.getElementById("questionText"),
+      helper:document.getElementById("helperMessage"),
+      answers:[...document.querySelectorAll(".answer")],
+      ladder:document.getElementById("ladderList"),
+      start:document.getElementById("startBtn"),
+      walk:document.getElementById("walkAwayBtn"),
+      sound:document.getElementById("soundBtn"),
+      ll50:document.getElementById("ll50"),
+      llAudience:document.getElementById("llAudience"),
+      llPhone:document.getElementById("llPhone"),
+      scoreboard:document.getElementById("scoreboard")
+    };
     let state={level:0,playing:false,locked:false,question:null,history:[],timer:null,lifelines:{fifty:true,audience:true,phone:true}};
     let soundEnabled=true,audioContext=null;
     function tone(freq,d=.15){if(!soundEnabled)return;try{audioContext||=new(window.AudioContext||window.webkitAudioContext);const o=audioContext.createOscillator(),g=audioContext.createGain();o.frequency.value=freq;g.gain.setValueAtTime(.12,audioContext.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+d);o.connect(g);g.connect(audioContext.destination);o.start();o.stop(audioContext.currentTime+d)}catch(_){}}
@@ -57,7 +99,7 @@
     function stopTimer(){if(state.timer){clearInterval(state.timer);state.timer=null}els.timer.classList.remove("danger")}
     function startTimer(){stopTimer();const limit=Number(els.time.value);if(limit===0){els.timer.textContent="∞";return}let seconds=limit;els.timer.textContent=seconds;state.timer=setInterval(()=>{seconds--;els.timer.textContent=seconds;if(seconds<=5)els.timer.classList.add("danger");tone(seconds<=5?880:520,.06);if(seconds<=0){stopTimer();timeout()}},1000)}
     function resetAnswers(){els.answers.forEach(b=>{b.disabled=true;b.classList.remove("selected","correct","wrong","hidden-option");b.querySelector(".answer-text").textContent="..."})}
-    async function loadQuestion(){state.locked=true;stopTimer();resetAnswers();updateStatus();els.category.textContent=`Porras ${state.level+1}/15 • ${PRIZES[state.level].toLocaleString("fi-FI")} €`;els.question.textContent="Luodaan uutta kysymystä...";els.helper.textContent="Odota hetki.";let question=null;try{const r=await fetch("/.netlify/functions/kysymys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({level:state.level+1,theme:els.theme.value,avoid:state.history.slice(-15)})});if(r.ok){const d=await r.json();if(typeof d.q==="string"&&Array.isArray(d.options)&&d.options.length===4&&Number.isInteger(d.correct))question=d}}catch(_){}if(!question){question=FALLBACK[state.level%FALLBACK.length];els.helper.textContent="Varakysymys käytössä. Tekoälypalvelin ei ole käytettävissä."}else els.helper.textContent="Valitse vastaus ennen kuin aika loppuu.";state.question=question;state.history.push(question.q);els.question.textContent=question.q;els.answers.forEach((b,i)=>{b.querySelector(".answer-text").textContent=question.options[i];b.disabled=false});state.locked=false;updateStatus();startTimer()}
+    async function loadQuestion(){state.locked=true;stopTimer();resetAnswers();updateStatus();els.category.textContent=`Porras ${state.level+1}/15 • ${PRIZES[state.level].toLocaleString("fi-FI")} €`;els.question.textContent="Luodaan uutta kysymystä...";els.helper.textContent="Odota hetki.";let question=null;try{const r=await fetch("/.netlify/functions/kysymys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({level:state.level+1,theme:els.theme.value,language:els.language.value,avoid:state.history.slice(-15)})});if(r.ok){const d=await r.json();if(typeof d.q==="string"&&d.q.trim()&&Array.isArray(d.options)&&d.options.length===4&&d.options.every(o=>typeof o==="string"&&o.trim())&&Number.isInteger(d.correct)&&d.correct>=0&&d.correct<=3)question=d}}catch(_){}if(!question){question=FALLBACK[state.level%FALLBACK.length];els.helper.textContent="Varakysymys käytössä. Tekoälypalvelin ei ole käytettävissä."}else els.helper.textContent="Valitse vastaus ennen kuin aika loppuu.";state.question=question;state.history.push(question.q);els.question.textContent=question.q;els.answers.forEach((b,i)=>{b.querySelector(".answer-text").textContent=question.options[i];b.disabled=false});state.locked=false;updateStatus();startTimer()}
     function handleAnswer(index){if(!state.playing||state.locked)return;state.locked=true;stopTimer();els.answers.forEach(b=>b.disabled=true);els.answers[index].classList.add("selected");tone(440);setTimeout(()=>{const correct=state.question.correct;els.answers[index].classList.remove("selected");if(index===correct){els.answers[index].classList.add("correct");tone(660,.3);state.level++;if(state.level===PRIZES.length){els.helper.textContent="";endGame("win",1000000)}else{els.helper.textContent="✅ Oikein! "+(state.question.explanation||"")+" Siirrytään seuraavaan kysymykseen...";updateStatus();setTimeout(loadQuestion,1800)}}else{els.answers[index].classList.add("wrong");els.answers[correct].classList.add("correct");tone(180,.5);els.helper.textContent="❌ Väärin. Oikea vastaus oli "+["A","B","C","D"][correct]+". "+(state.question.explanation||"");endGame("lose",guaranteed())}},700)}
     function timeout(){if(!state.playing||state.locked)return;state.locked=true;const c=state.question.correct;els.answers.forEach(b=>b.disabled=true);els.answers[c].classList.add("correct");tone(180,.5);els.helper.textContent="⏰ Aika loppui! Oikea vastaus oli "+["A","B","C","D"][c]+".";endGame("timeout",guaranteed())}
     function bestResults(){try{return JSON.parse(localStorage.getItem("kultainenNousuResults")||"[]")}catch(_){return[]}}function saveResult(won,mode){const record={won,date:new Date().toISOString(),mode,level:state.level};const list=[record,...bestResults()].sort((a,b)=>b.won-a.won).slice(0,5);try{localStorage.setItem("kultainenNousuResults",JSON.stringify(list))}catch(_){}}
