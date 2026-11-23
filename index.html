@@ -1,431 +1,854 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kultainen Nousu – Tietovisa</title>
   <style>
     :root {
-      --bg-dark: #070b19;
-      --bg-card: #101833;
-      --bg-card-hover: #1a2752;
+      --bg: #060919;
+      --panel: #111b47;
       --gold: #f5c542;
-      --gold-dark: #b88914;
-      --blue-accent: #3b82f6;
+      --text: #fff;
+      --muted: #aab4ce;
       --green: #16a34a;
       --red: #dc2626;
-      --orange: #ea580c;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: #29386b;
     }
 
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     body {
-      background: radial-gradient(circle at top, #131f47 0%, var(--bg-dark) 75%);
-      color: var(--text-main);
+      margin: 0;
       min-height: 100vh;
+      color: var(--text);
+      background: radial-gradient(circle at top, #1b2e70, var(--bg) 70%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .app {
+      width: min(1100px, calc(100% - 24px));
+      min-height: calc(100vh - 24px);
+      margin: 12px auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 16px;
+      padding: 18px;
+      border: 1px solid rgba(245, 197, 66, .25);
+      border-radius: 18px;
+      background: rgba(13, 20, 51, .94);
+    }
+
+    .main {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 16px;
+      gap: 16px;
+      min-width: 0;
     }
 
-    header {
-      width: 100%;
-      max-width: 1100px;
+    .top,
+    .status,
+    .question,
+    .ladder {
+      border: 1px solid rgba(245, 197, 66, .32);
+      border-radius: 14px;
+      background: rgba(7, 12, 36, .72);
+    }
+
+    .top {
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
       gap: 12px;
-      padding: 14px 20px;
-      background: rgba(16, 24, 51, 0.9);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      margin-bottom: 18px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+      padding: 14px;
     }
 
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      background: linear-gradient(90deg, #ffe58f, var(--gold), #d49b1a);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    h1 {
+      margin: 0;
+      color: var(--gold);
+      font-size: clamp(1.35rem, 3vw, 2.1rem);
     }
 
-    .controls-bar {
+    .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
     }
 
-    select, button {
-      background: var(--bg-card);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 9px 14px;
+    select,
+    button {
+      min-height: 42px;
+      border: 1px solid rgba(245, 197, 66, .55);
       border-radius: 10px;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      color: var(--text);
+      background: #172356;
+      padding: 9px 12px;
+      font: inherit;
     }
 
-    select:hover, button:hover:not(:disabled) {
-      border-color: var(--gold);
-      background: var(--bg-card-hover);
+    button {
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      background: #22347d;
     }
 
     button:disabled {
-      opacity: 0.4;
       cursor: not-allowed;
+      opacity: .45;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      color: #090d16;
-      font-weight: 700;
-      border: none;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      filter: brightness(1.1);
-      background: linear-gradient(135deg, #ffd666, var(--gold));
-    }
-
-    .btn-cashout {
-      background: #1e293b;
-      border-color: #475569;
-      color: #e2e8f0;
-      font-weight: 600;
-    }
-
-    .main-grid {
-      width: 100%;
-      max-width: 1100px;
-      display: grid;
-      grid-template-columns: 1fr 290px;
-      gap: 18px;
-    }
-
-    @media (max-width: 860px) {
-      .main-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .game-panel {
-      background: rgba(16, 24, 51, 0.92);
-      border: 1px solid var(--border-color);
-      border-radius: 18px;
-      padding: 22px;
+    .status {
+      min-height: 90px;
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-
-    .status-row {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      justify-content: space-between;
       gap: 12px;
+      padding: 14px;
     }
 
-    .timer-box {
+    .timer {
       display: flex;
       align-items: center;
       gap: 10px;
-      background: #0b1126;
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--border-color);
     }
 
-    .timer-value {
-      font-size: 1.35rem;
-      font-weight: 800;
+    .timer-circle {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--gold);
+      border-radius: 50%;
       color: var(--gold);
-      min-width: 34px;
-      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 800;
     }
 
-    .timer-value.danger {
-      color: #ef4444;
-      animation: pulse 0.6s infinite alternate;
+    .timer-circle.danger {
+      border-color: #f87171;
+      color: #fca5a5;
+      animation: pulse .8s infinite;
     }
 
     @keyframes pulse {
-      from { transform: scale(1); }
-      to { transform: scale(1.15); }
+      50% { transform: scale(1.08); }
+    }
+
+    .guaranteed {
+      color: var(--gold);
+      font-weight: 700;
     }
 
     .lifelines {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
     }
 
-    .lifeline-btn {
-      font-weight: 700;
-      border-color: var(--blue-accent);
-      background: rgba(59, 130, 246, 0.14);
+    .lifeline.used {
+      text-decoration: line-through;
+      opacity: .45;
     }
 
-    .question-box {
-      background: linear-gradient(180deg, #152147 0%, #0d1530 100%);
-      border: 2px solid var(--gold-dark);
-      border-radius: 16px;
-      padding: 26px 22px;
-      text-align: center;
-      min-height: 145px;
+    .question {
+      min-height: 150px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 12px;
+      padding: 24px;
+      text-align: center;
     }
 
-    .question-meta {
-      font-size: 0.85rem;
+    .category {
       color: var(--gold);
-      text-transform: uppercase;
+      font-size: .82rem;
       letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    #questionText {
+      max-width: 800px;
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
       font-weight: 700;
     }
 
-    .question-text {
-      font-size: 1.3rem;
-      font-weight: 600;
-      line-height: 1.45;
-    }
-
-    .answers-grid {
+    .answers {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
+      gap: 12px;
     }
 
-    @media (max-width: 600px) {
-      .answers-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .answer-btn {
+    .answer {
+      min-height: 72px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 16px 18px;
-      border-radius: 14px;
-      background: #111b3b;
-      border: 1px solid #314585;
       text-align: left;
-      font-size: 1.05rem;
-      font-weight: 500;
-      min-height: 62px;
-    }
-
-    .answer-letter {
-      color: var(--gold);
-      font-weight: 800;
-      font-size: 1.1rem;
-    }
-
-    .answer-btn.locked {
-      background: var(--orange);
-      border-color: #fdba74;
-      color: #fff;
-    }
-
-    .answer-btn.correct {
-      background: var(--green);
-      border-color: #86efac;
-      color: #fff;
-    }
-
-    .answer-btn.wrong {
-      background: var(--red);
-      border-color: #fca5a5;
-      color: #fff;
-    }
-
-    .answer-btn.eliminated {
-      opacity: 0.22;
-      pointer-events: none;
-    }
-
-    .helper-message {
-      background: rgba(15, 23, 42, 0.85);
-      border-left: 4px solid var(--gold);
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      color: #e2e8f0;
-      min-height: 46px;
-      display: flex;
-      align-items: center;
-    }
-
-    .bottom-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
       gap: 12px;
-      padding-top: 6px;
-      border-top: 1px solid var(--border-color);
+      padding: 14px 16px;
+      border: 1.5px solid rgba(245, 197, 66, .55);
+      background: #101942;
     }
 
-    .ladder-panel {
-      background: rgba(16, 24, 51, 0.92);
-      border: 1px solid var(--border-color);
-      border-radius: 18px;
-      padding: 16px;
+    .answer .letter {
+      color: var(--gold);
+      font-size: 1.15rem;
+      font-weight: 900;
+    }
+
+    .answer.selected {
+      background: #9a5b10;
+      border-color: #fde047;
+    }
+
+    .answer.correct {
+      background: var(--green) !important;
+      border-color: #86efac !important;
+    }
+
+    .answer.wrong {
+      background: var(--red) !important;
+      border-color: #fca5a5 !important;
+    }
+
+    .answer.hidden-option {
+      visibility: hidden;
+    }
+
+    .helper {
+      min-height: 52px;
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      align-items: center;
+      padding: 12px 14px;
+      border-left: 4px solid var(--gold);
+      border-radius: 8px;
+      background: rgba(37, 99, 235, .16);
     }
 
-    .ladder-title {
-      text-align: center;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .ladder-step {
+    .bottom {
       display: flex;
       justify-content: space-between;
-      padding: 7px 12px;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      color: var(--text-muted);
+      gap: 12px;
     }
 
-    .ladder-step.safe {
-      color: #fff;
-      font-weight: 700;
-      border: 1px dashed rgba(245, 197, 66, 0.45);
+    .start {
+      color: #090d1f;
+      border: none;
+      background: linear-gradient(135deg, #d99b16, #f5c542);
+      font-weight: 800;
     }
 
-    .ladder-step.passed {
+    .ladder {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+    }
+
+    #ladderList {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column-reverse;
+      list-style: none;
+      gap: 4px;
+    }
+
+    .ladder-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .ladder-item.milestone {
+      color: #ffe285;
+      font-weight: 800;
+    }
+
+    .ladder-item.passed {
       color: #4ade80;
     }
 
-    .ladder-step.active {
-      background: linear-gradient(90deg, var(--gold-dark), var(--gold));
-      color: #090d16;
-      font-weight: 800;
-      border: none;
+    .ladder-item.active {
+      color: #060919;
+      background: linear-gradient(90deg, #d97706, #f5c542);
+      font-weight: 900;
     }
 
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(3, 7, 18, 0.82);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-      z-index: 100;
+    @media (max-width: 860px) {
+      .app {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .ladder {
+        order: -1;
+      }
+
+      #ladderList {
+        max-height: 260px;
+        overflow-y: auto;
+      }
     }
 
-    .modal-backdrop.open {
-      display: flex;
-    }
+    @media (max-width: 600px) {
+      .top,
+      .status,
+      .bottom {
+        align-items: stretch;
+        flex-direction: column;
+      }
 
-    .modal-card {
-      background: #111936;
-      border: 1px solid var(--gold);
-      border-radius: 16px;
-      max-width: 480px;
-      width: 100%;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-    }
+      .controls,
+      .lifelines {
+        justify-content: stretch;
+      }
 
-    .modal-card h2 {
-      color: var(--gold);
-      font-size: 1.3rem;
-    }
+      .controls select,
+      .controls button,
+      .lifelines button,
+      .bottom button {
+        flex: 1;
+      }
 
-    .modal-card p {
-      color: #cbd5e1;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-
-    .modal-card input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      background: #080d1f;
-      color: #fff;
-      font-size: 1rem;
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 6px;
+      .answers {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="app">
+    <main class="main">
+      <header class="top">
+        <h1>Kultainen Nousu</h1>
+        <div class="controls">
+          <select id="themeSelect" aria-label="Teema">
+            <option value="Kaikki aihealueet (yleistieto)">Yleistieto</option>
+            <option value="Suomen ja maailman historia">Historia</option>
+            <option value="Urheilu ja olympialaiset">Urheilu</option>
+            <option value="Musiikki, elokuvat ja popkulttuuri">Viihde</option>
+            <option value="Tiede, luonto ja avaruus">Tiede & luonto</option>
+            <option value="Maantieto ja matkailu">Maantieto</option>
+          </select>
 
-  <header>
-    <div class="logo">Kultainen Nousu</div>
-    <div class="controls-bar">
-      <select id="themeSelect" title="Valitse teema">
-        <option value="Yleistieto (kaikki aihealueet)">Teema: Yleistieto (Kaikki)</option>
-        <option value="Historia ja merkkihenkilöt">Teema: Historia</option>
-        <option value="Urheilu ja olympialaiset">Teema: Urheilu</option>
-        <option value="Musiikki, elokuvat ja viihde">Teema: Musiikki &amp; Viihde</option>
-        <option value="Tiede, tekniikka ja luonto">Teema: Tiede &amp; Luonto</option>
-        <option value="Maantieto, maat ja pääkaupungit">Teema: Maantieto</option>
-      </select>
+          <select id="timeSelect" aria-label="Vastausaika">
+            <option value="30">30 sekuntia</option>
+            <option value="45">45 sekuntia</option>
+            <option value="20">20 sekuntia</option>
+            <option value="0">Ei aikarajaa</option>
+          </select>
 
-      <select id="timerSelect" title="Valitse vastausaika">
-        <option value="30">Aika: 30 s</option>
-        <option value="45">Aika: 45 s</option>
-        <option value="20">Aika: 20 s (Pikapeli)</option>
-        <option value="0">Ei aikarajaa</option>
-      </select>
+          <button id="soundBtn">🔊 Äänet: PÄÄLLÄ</button>
+        </div>
+      </header>
 
-      <button id="soundToggleBtn" type="button">🔊 Äänet: PÄÄLLÄ</button>
-      <button id="apiKeyBtn" type="button">🔑 API-avain</button>
-    </div>
-  </header>
-
-  <main class="main-grid">
-    <section class="game-panel">
-      <div class="status-row">
-        <div class="timer-box">
-          <span>⏱️</span>
-          <span class="timer-value" id="timerDisplay">30</span>
-          <span style="color: var(--text-muted); font-size: 0.9rem;">Aikaa jäljellä</span>
+      <section class="status">
+        <div class="timer">
+          <div id="timerDisplay" class="timer-circle">30</div>
+          <div>
+            <div>Aikaa jäljellä</div>
+            <strong id="guaranteedDisplay" class="guaranteed">Turvataso: 0 €</strong>
+          </div>
         </div>
 
-        <div style="font-weight: 700; color: var(--gold);" id="safeSumDisplay">
-          Turvataso: 0 €
+        <div class="lifelines">
+          <button id="ll50" class="lifeline">50:50</button>
+          <button id="llAudience" class="lifeline">👥 Yleisö</button>
+          <button id="llPhone" class="lifeline">📞 Kilauta</button>
         </div>
+      </section>
 
+      <section class="question">
+        <div id="categoryBadge" class="category">Tervetuloa peliin</div>
+        <div id="questionText">
+          Valitse teema ja paina “Aloita uusi peli”.
+        </div>
+      </section>
+
+      <section id="answersGrid" class="answers">
+        <button class="answer" data-index="0" disabled>
+          <span class="letter">A:</span><span class="answer-text">–</span>
+        </button>
+        <button class="answer" data-index="1" disabled>
+          <span class="letter">B:</span><span class="answer-text">–</span>
+        </button>
+        <button class="answer" data-index="2" disabled>
+          <span class="letter">C:</span><span class="answer-text">–</span>
+        </button>
+        <button class="answer" data-index="3" disabled>
+          <span class="letter">D:</span><span class="answer-text">–</span>
+        </button>
+      </section>
+
+      <div id="helperMessage" class="helper">
+        Tekoäly luo joka kierroksella uuden kysymyksen.
+      </div>
+
+      <footer class="bottom">
+        <button id="walkAwayBtn" disabled>Ota rahat ja lopeta</button>
+        <button id="startBtn" class="start">▶ Aloita uusi peli</button>
+      </footer>
+    </main>
+
+    <aside class="ladder">
+      <ul id="ladderList"></ul>
+    </aside>
+  </div>
+
+  <script>
+    const PRIZES = [
+      100, 200, 300, 500, 1000,
+      2000, 4000, 8000, 16000, 32000,
+      64000, 125000, 250000, 500000, 1000000
+    ];
+
+    const FALLBACK_QUESTIONS = [
+      {
+        q: "Mikä on Suomen pohjoisin kunta?",
+        options: ["Inari", "Utsjoki", "Enontekiö", "Sodankylä"],
+        correct: 1,
+        explanation: "Utsjoki on Suomen pohjoisin kunta."
+      },
+      {
+        q: "Minä vuonna Suomi voitti ensimmäisen jääkiekon maailmanmestaruutensa?",
+        options: ["1992", "1995", "1998", "2011"],
+        correct: 1,
+        explanation: "Suomi voitti ensimmäisen MM-kultansa Tukholmassa 1995."
+      },
+      {
+        q: "Kuka sävelsi Finlandia-hymnin?",
+        options: ["Oskar Merikanto", "Jean Sibelius", "Leevi Madetoja", "Toivo Kuula"],
+        correct: 1,
+        explanation: "Jean Sibelius sävelsi Finlandian."
+      },
+      {
+        q: "Mikä on Suomen pääkaupunki?",
+        options: ["Turku", "Helsinki", "Tampere", "Vaasa"],
+        correct: 1,
+        explanation: "Helsinki on Suomen pääkaupunki."
+      },
+      {
+        q: "Kumpi näistä on planeetta?",
+        options: ["Mars", "Jupiter", "Kuu", "Aurinko"],
+        correct: 1,
+        explanation: "Jupiter on planeetta."
+      }
+    ];
+
+    let state = {
+      level: 0,
+      playing: false,
+      locked: false,
+      question: null,
+      history: [],
+      timer: null,
+      lifelines: {
+        fifty: true,
+        audience: true,
+        phone: true
+      }
+    };
+
+    const themeSelect = document.getElementById("themeSelect");
+    const timeSelect = document.getElementById("timeSelect");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const guaranteedDisplay = document.getElementById("guaranteedDisplay");
+    const categoryBadge = document.getElementById("categoryBadge");
+    const questionText = document.getElementById("questionText");
+    const helperMessage = document.getElementById("helperMessage");
+    const answerButtons = [...document.querySelectorAll(".answer")];
+    const ladderList = document.getElementById("ladderList");
+    const startBtn = document.getElementById("startBtn");
+    const walkAwayBtn = document.getElementById("walkAwayBtn");
+    const soundBtn = document.getElementById("soundBtn");
+    const ll50 = document.getElementById("ll50");
+    const llAudience = document.getElementById("llAudience");
+    const llPhone = document.getElementById("llPhone");
+
+    let soundEnabled = true;
+    let audioContext = null;
+
+    function playTone(frequency, duration = .15) {
+      if (!soundEnabled) return;
+      try {
+        audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(.12, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch (_) {}
+    }
+
+    function renderLadder() {
+      ladderList.innerHTML = "";
+
+      PRIZES.forEach((amount, index) => {
+        const item = document.createElement("li");
+        item.className = "ladder-item";
+
+        if (index === 4 || index === 9 || index === 14) {
+          item.classList.add("milestone");
+        }
+        if (index < state.level) {
+          item.classList.add("passed");
+        }
+        if (state.playing && index === state.level) {
+          item.classList.add("active");
+        }
+
+        item.innerHTML =
+          "<span>" + (index + 1) + ".</span>" +
+          "<span>" + amount.toLocaleString("fi-FI") + " €</span>";
+        ladderList.appendChild(item);
+      });
+    }
+
+    function guaranteedPrize() {
+      if (state.level >= 10) return 32000;
+      if (state.level >= 5) return 1000;
+      return 0;
+    }
+
+    function currentPrize() {
+      return state.level === 0 ? 0 : PRIZES[state.level - 1];
+    }
+
+    function updateStatus() {
+      renderLadder();
+      const guaranteed = guaranteedPrize();
+      const current = currentPrize();
+
+      guaranteedDisplay.textContent =
+        "Turvataso: " + guaranteed.toLocaleString("fi-FI") + " €";
+      walkAwayBtn.textContent =
+        "💰 Ota rahat ja lopeta (" + current.toLocaleString("fi-FI") + " €)";
+      walkAwayBtn.disabled =
+        !state.playing || state.locked || state.level === 0;
+    }
+
+    function stopTimer() {
+      if (state.timer) {
+        clearInterval(state.timer);
+        state.timer = null;
+      }
+      timerDisplay.classList.remove("danger");
+    }
+
+    function startTimer() {
+      stopTimer();
+
+      const limit = Number(timeSelect.value);
+      if (limit === 0) {
+        timerDisplay.textContent = "∞";
+        return;
+      }
+
+      let seconds = limit;
+      timerDisplay.textContent = String(seconds);
+
+      state.timer = setInterval(() => {
+        seconds--;
+        timerDisplay.textContent = String(seconds);
+
+        if (seconds <= 5) {
+          timerDisplay.classList.add("danger");
+        }
+
+        playTone(seconds <= 5 ? 880 : 520, .06);
+
+        if (seconds <= 0) {
+          stopTimer();
+          handleTimeout();
+        }
+      }, 1000);
+    }
+
+    function resetAnswerButtons() {
+      answerButtons.forEach(button => {
+        button.disabled = true;
+        button.classList.remove(
+          "selected",
+          "correct",
+          "wrong",
+          "hidden-option"
+        );
+        button.querySelector(".answer-text").textContent = "...";
+      });
+    }
+
+    async function loadQuestion() {
+      state.locked = true;
+      stopTimer();
+      resetAnswerButtons();
+      updateStatus();
+
+      const prize = PRIZES[state.level];
+      const theme = themeSelect.value;
+
+      categoryBadge.textContent =
+        "Porras " + (state.level + 1) + "/15 • " +
+        prize.toLocaleString("fi-FI") + " €";
+      questionText.textContent = "Luodaan uutta kysymystä...";
+      helperMessage.textContent = "Odota hetki.";
+
+      let question = null;
+
+      try {
+        const response = await fetch("/.netlify/functions/kysymys", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            level: state.level + 1,
+            prize,
+            theme,
+            avoid: state.history.slice(-15)
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (
+            typeof data.q === "string" &&
+            Array.isArray(data.options) &&
+            data.options.length === 4 &&
+            Number.isInteger(data.correct)
+          ) {
+            question = data;
+          }
+        }
+      } catch (_) {}
+
+      if (!question) {
+        question =
+          FALLBACK_QUESTIONS[state.level % FALLBACK_QUESTIONS.length];
+        helperMessage.textContent =
+          "Varakysymys käytössä. Tekoälypalvelin ei ole käytettävissä.";
+      } else {
+        helperMessage.textContent =
+          "Valitse vastaus ennen kuin aika loppuu.";
+      }
+
+      state.question = question;
+      state.history.push(question.q);
+      questionText.textContent = question.q;
+
+      answerButtons.forEach((button, index) => {
+        button.querySelector(".answer-text").textContent =
+          question.options[index];
+        button.disabled = false;
+      });
+
+      state.locked = false;
+      updateStatus();
+      startTimer();
+    }
+
+    function handleAnswer(index) {
+      if (!state.playing || state.locked) return;
+
+      state.locked = true;
+      stopTimer();
+      answerButtons.forEach(button => button.disabled = true);
+      answerButtons[index].classList.add("selected");
+      playTone(440);
+
+      setTimeout(() => {
+        const correct = state.question.correct;
+        answerButtons[index].classList.remove("selected");
+
+        if (index === correct) {
+          answerButtons[index].classList.add("correct");
+          playTone(660, .3);
+          state.level++;
+
+          if (state.level === PRIZES.length) {
+            helperMessage.textContent =
+              "🏆 ONNEA! Voitit miljoonan euron pääpotin!";
+            endGame();
+          } else {
+            helperMessage.textContent =
+              "✅ Oikein! " +
+              (state.question.explanation || "") +
+              " Siirrytään seuraavaan kysymykseen...";
+            updateStatus();
+            setTimeout(loadQuestion, 1800);
+          }
+        } else {
+          answerButtons[index].classList.add("wrong");
+          answerButtons[correct].classList.add("correct");
+          const won = guaranteedPrize();
+          helperMessage.textContent =
+            "❌ Väärin. Oikea vastaus oli " +
+            ["A", "B", "C", "D"][correct] +
+            ". " + (state.question.explanation || "") +
+            " Voitit " + won.toLocaleString("fi-FI") + " €.";
+          playTone(180, .5);
+          endGame();
+        }
+      }, 700);
+    }
+
+    function handleTimeout() {
+      if (!state.playing || state.locked) return;
+
+      state.locked = true;
+      const correct = state.question.correct;
+      answerButtons.forEach(button => button.disabled = true);
+      answerButtons[correct].classList.add("correct");
+
+      const won = guaranteedPrize();
+      helperMessage.textContent =
+        "⏰ Aika loppui! Oikea vastaus oli " +
+        ["A", "B", "C", "D"][correct] +
+        ". Voitit " + won.toLocaleString("fi-FI") + " €.";
+      playTone(180, .5);
+      endGame();
+    }
+
+    function startGame() {
+      state.level = 0;
+      state.playing = true;
+      state.locked = false;
+      state.history = [];
+      state.lifelines = {
+        fifty: true,
+        audience: true,
+        phone: true
+      };
+
+      [ll50, llAudience, llPhone].forEach(button => {
+        button.disabled = false;
+        button.classList.remove("used");
+      });
+
+      startBtn.textContent = "🔄 Aloita alusta";
+      loadQuestion();
+    }
+
+    function endGame() {
+      state.playing = false;
+      state.locked = true;
+      stopTimer();
+      answerButtons.forEach(button => button.disabled = true);
+      ll50.disabled = true;
+      llAudience.disabled = true;
+      llPhone.disabled = true;
+      walkAwayBtn.disabled = true;
+      renderLadder();
+    }
+
+    ll50.addEventListener("click", () => {
+      if (!state.playing || state.locked || !state.lifelines.fifty) return;
+
+      state.lifelines.fifty = false;
+      ll50.disabled = true;
+      ll50.classList.add("used");
+
+      const correct = state.question.correct;
+      const wrong = [0, 1, 2, 3].filter(index => index !== correct);
+      wrong.sort(() => Math.random() - .5);
+
+      wrong.slice(0, 2).forEach(index => {
+        answerButtons[index].classList.add("hidden-option");
+        answerButtons[index].disabled = true;
+      });
+
+      helperMessage.textContent =
+        "50:50 käytetty: kaksi väärää vastausta poistettiin.";
+    });
+
+    llAudience.addEventListener("click", () => {
+      if (!state.playing || state.locked || !state.lifelines.audience) return;
+
+      state.lifelines.audience = false;
+      llAudience.disabled = true;
+      llAudience.classList.add("used");
+
+      const correct = state.question.correct;
+      const correctPercent = Math.max(42, 82 - state.level * 2);
+      const distribution = [0, 0, 0, 0];
+      distribution[correct] = correctPercent;
+
+      let remaining = 100 - correctPercent;
+      [0, 1, 2, 3]
+        .filter(index => index !== correct)
+        .forEach((index, position, indexes) => {
+          if (position === indexes.length - 1) {
+            distribution[index] = remaining;
+          } else {
+            const share = Math.floor(Math.random() * (remaining + 1));
+            distribution[index] = share;
+            remaining -= share;
+          }
+        });
+
+      helperMessage.textContent =
+        "👥 Yleisön äänet: " +
+        distribution.map((value, index) =>
+          ["A", "B", "C", "D"][index] + ": " + value + "%"
+        ).join(" | ");
+    });
+
+    llPhone.addEventListener("click", () => {
+      if (!state.playing || state.locked || !state.lifelines.phone) return;
+
+      state.lifelines.phone = false;
+      llPhone.disabled = true;
+      llPhone.classList.add("used");
+
+      const correct = state.question.correct;
+      const letters = ["A", "B", "C", "D"];
+      const sure = state.level < 10 || Math.random() < .75;
+      const index = sure
+        ? correct
+        : [0, 1, 2, 3].find(item => item !== correct);
+
+      helperMessage.textContent =
+        "📞 Kaveri vastaa: " + letters[index] + ": " +
+        state.question.options[index];
+    });
+
+    startBtn.addEventListener("click", startGame);
+
+    walkAwayBtn.addEventListener("click", () => {
+      if (!state.playing || state.locked || state.level === 0) return;
+
+      const won = currentPrize();
+      helperMessage.textContent =
+        "💰 Lopetit ajoissa. Voitit " +
+        won.toLocaleString("fi-FI") + " €.";
+      endGame();
+    });
+
+    soundBtn.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundBtn.textContent =
+        soundEnabled ? "🔊 Äänet: PÄÄLLÄ" : "🔇 Äänet: POIS";
+      if (soundEnabled) playTone(520);
+    });
+
+    answerButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        handleAnswer(Number(button.dataset.index));
+      });
+    });
+
+    renderLadder();
+  </script>
+</body>
+</html>
