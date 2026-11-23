@@ -1,33 +1,431 @@
-KULTAINEN NOUSU
-            Teema: Yleistieto (Kaikki)
-            Teema: Historia
-            Teema: Urheilu
-            Teema: Musiikki & Viihde
-            Teema: Tiede & Luonto
-            Teema: Maantieto
-          
-            Aika: 30 s
-            Aika: 45 s
-            Aika: 20 s (Pikapeli)
-            Ei aikarajaa
-          
-🔊 Äänet: PÄÄLLÄ
-30
-Aikaa jäljellä
-Turvataso: 0 €
-50:50
-👥 Yleisö
-📞 Kilauta
-TERVETULOA PELIIN
-Valitse haluamasi teema ja vastausaika ylhäältä, ja paina "Aloita uusi peli"!
-A:
--
-B:
--
-C:
--
-D:
--
-Tekoäly luo joka kierroksella täysin uuden kysymyksen valitsemastasi teemasta.
-💰 Ota rahat ja lopeta (0 €)
-▶ Aloita uusi peli
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kultainen Nousu – Tietovisa</title>
+  <style>
+    :root {
+      --bg-dark: #070b19;
+      --bg-card: #101833;
+      --bg-card-hover: #1a2752;
+      --gold: #f5c542;
+      --gold-dark: #b88914;
+      --blue-accent: #3b82f6;
+      --green: #16a34a;
+      --red: #dc2626;
+      --orange: #ea580c;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #29386b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #131f47 0%, var(--bg-dark) 75%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: rgba(16, 24, 51, 0.9);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #ffe58f, var(--gold), #d49b1a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    select, button {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    select:hover, button:hover:not(:disabled) {
+      border-color: var(--gold);
+      background: var(--bg-card-hover);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #090d16;
+      font-weight: 700;
+      border: none;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.1);
+      background: linear-gradient(135deg, #ffd666, var(--gold));
+    }
+
+    .btn-cashout {
+      background: #1e293b;
+      border-color: #475569;
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    .main-grid {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr 290px;
+      gap: 18px;
+    }
+
+    @media (max-width: 860px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .game-panel {
+      background: rgba(16, 24, 51, 0.92);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .timer-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0b1126;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+    }
+
+    .timer-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--gold);
+      min-width: 34px;
+      text-align: center;
+    }
+
+    .timer-value.danger {
+      color: #ef4444;
+      animation: pulse 0.6s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.15); }
+    }
+
+    .lifelines {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .lifeline-btn {
+      font-weight: 700;
+      border-color: var(--blue-accent);
+      background: rgba(59, 130, 246, 0.14);
+    }
+
+    .question-box {
+      background: linear-gradient(180deg, #152147 0%, #0d1530 100%);
+      border: 2px solid var(--gold-dark);
+      border-radius: 16px;
+      padding: 26px 22px;
+      text-align: center;
+      min-height: 145px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .question-meta {
+      font-size: 0.85rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+
+    .question-text {
+      font-size: 1.3rem;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .answers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .answers-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .answer-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: #111b3b;
+      border: 1px solid #314585;
+      text-align: left;
+      font-size: 1.05rem;
+      font-weight: 500;
+      min-height: 62px;
+    }
+
+    .answer-letter {
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .answer-btn.locked {
+      background: var(--orange);
+      border-color: #fdba74;
+      color: #fff;
+    }
+
+    .answer-btn.correct {
+      background: var(--green);
+      border-color: #86efac;
+      color: #fff;
+    }
+
+    .answer-btn.wrong {
+      background: var(--red);
+      border-color: #fca5a5;
+      color: #fff;
+    }
+
+    .answer-btn.eliminated {
+      opacity: 0.22;
+      pointer-events: none;
+    }
+
+    .helper-message {
+      background: rgba(15, 23, 42, 0.85);
+      border-left: 4px solid var(--gold);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+    }
+
+    .bottom-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .ladder-panel {
+      background: rgba(16, 24, 51, 0.92);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ladder-title {
+      text-align: center;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .ladder-step {
+      display: flex;
+      justify-content: space-between;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .ladder-step.safe {
+      color: #fff;
+      font-weight: 700;
+      border: 1px dashed rgba(245, 197, 66, 0.45);
+    }
+
+    .ladder-step.passed {
+      color: #4ade80;
+    }
+
+    .ladder-step.active {
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+      color: #090d16;
+      font-weight: 800;
+      border: none;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.82);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #111936;
+      border: 1px solid var(--gold);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-card h2 {
+      color: var(--gold);
+      font-size: 1.3rem;
+    }
+
+    .modal-card p {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .modal-card input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: #080d1f;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Kultainen Nousu</div>
+    <div class="controls-bar">
+      <select id="themeSelect" title="Valitse teema">
+        <option value="Yleistieto (kaikki aihealueet)">Teema: Yleistieto (Kaikki)</option>
+        <option value="Historia ja merkkihenkilöt">Teema: Historia</option>
+        <option value="Urheilu ja olympialaiset">Teema: Urheilu</option>
+        <option value="Musiikki, elokuvat ja viihde">Teema: Musiikki &amp; Viihde</option>
+        <option value="Tiede, tekniikka ja luonto">Teema: Tiede &amp; Luonto</option>
+        <option value="Maantieto, maat ja pääkaupungit">Teema: Maantieto</option>
+      </select>
+
+      <select id="timerSelect" title="Valitse vastausaika">
+        <option value="30">Aika: 30 s</option>
+        <option value="45">Aika: 45 s</option>
+        <option value="20">Aika: 20 s (Pikapeli)</option>
+        <option value="0">Ei aikarajaa</option>
+      </select>
+
+      <button id="soundToggleBtn" type="button">🔊 Äänet: PÄÄLLÄ</button>
+      <button id="apiKeyBtn" type="button">🔑 API-avain</button>
+    </div>
+  </header>
+
+  <main class="main-grid">
+    <section class="game-panel">
+      <div class="status-row">
+        <div class="timer-box">
+          <span>⏱️</span>
+          <span class="timer-value" id="timerDisplay">30</span>
+          <span style="color: var(--text-muted); font-size: 0.9rem;">Aikaa jäljellä</span>
+        </div>
+
+        <div style="font-weight: 700; color: var(--gold);" id="safeSumDisplay">
+          Turvataso: 0 €
+        </div>
+
