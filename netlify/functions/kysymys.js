@@ -67,14 +67,17 @@ exports.handler = async function handler(event) {
     `Kysymyksen, kaikkien vastausvaihtoehtojen ja selityksen tulee olla ${language}.`,
     `Aihe: ${theme}.`,
     `Vaikeustaso: ${level}/15.`,
+    "Vaihtele kysymysten aiheita ja kysymysmuotoja valitun teeman sisällä.",
+    "Älä tee samanlaisia kysymyksiä aiempien kysymysten kanssa.",
+    `Aiemmat kysymykset ovat: ${JSON.stringify(avoid)}`,
+    "Älä palauta aiemmin annettua kysymystä tai sen pientä muunnelmaa.",
+    "Vaihtele alateemoja esimerkiksi historian, maantiedon, tieteen, kulttuurin, urheilun, yhteiskunnan ja luonnon välillä, kun ne sopivat valittuun teemaan.",
+    "Vaihtele oikean vastauksen paikkaa eri vaihtoehtojen välillä.",
     "Palauta vain JSON-objekti ilman markdownia tässä muodossa:",
     '{"q":"kysymys","options":["vastaus A","vastaus B","vastaus C","vastaus D"],"correct":0,"explanation":"lyhyt selitys"}',
     "correct on oikean vaihtoehdon indeksinumero 0–3.",
     "Vaihtoehtoja pitää olla täsmälleen neljä ja vain yksi saa olla oikea.",
-    "Käytä selkeää yleiskieltä ja vältä epävarmoja tai kiistanalaisia väitteitä.",
-    avoid.length
-      ? `Älä toista näitä aiempia kysymyksiä tai tee niistä pieniä muunnelmia: ${JSON.stringify(avoid)}`
-      : ""
+    "Käytä selkeää yleiskieltä ja vältä epävarmoja tai kiistanalaisia väitteitä."
   ].filter(Boolean).join("\n");
 
   try {
